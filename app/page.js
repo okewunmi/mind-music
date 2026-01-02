@@ -604,7 +604,7 @@ export default function MindMusic() {
           </div>
         </div>
 
-        {/* Recordings
+        {/* Recordings */}
         {recordings.length > 0 && (
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -633,7 +633,7 @@ export default function MindMusic() {
               ))}
             </div>
           </div>
-        )} */}
+        )}
 
         {/* Info Panel */}
         <div className="mt-8 bg-blue-500/20 border border-blue-500 rounded-lg p-6">
