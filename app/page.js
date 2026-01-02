@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Download, Share2, Radio, Music, Activity, Zap } from 'lucide-react';
 
@@ -8,9 +9,10 @@ export default function MindMusic() {
   const [eegData, setEegData] = useState([]);
   const [recordings, setRecordings] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [sessionId] = useState(() => Math.random().toString(36).substr(2, 9));
+  const [sessionId, setSessionId] = useState('');
   const [viewers, setViewers] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [bandPowers, setBandPowers] = useState({
     delta: 0,
     theta: 0,
@@ -20,7 +22,7 @@ export default function MindMusic() {
   });
   
   // NEW: Real dataset integration
-  const [realData, setRealData] = useState<any>(null);
+  const [realData, setRealData] = useState(null);
   const [dataSource, setDataSource] = useState('Simulated EEG');
   const [frameIndex, setFrameIndex] = useState(0);
 
@@ -35,6 +37,10 @@ export default function MindMusic() {
 
   // Load Real EEG Dataset
   useEffect(() => {
+    // Set mounted flag and generate session ID on client only
+    setMounted(true);
+    setSessionId(Math.random().toString(36).substr(2, 9));
+    
     const loadRealData = async () => {
       try {
         const response = await fetch('/data/S001R01.json');
@@ -55,7 +61,7 @@ export default function MindMusic() {
   // Initialize Audio Context
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const AudioContext = window.AudioContext || window.AudioContext;
       audioContextRef.current = new AudioContext();
       gainNodeRef.current = audioContextRef.current.createGain();
       analyserRef.current = audioContextRef.current.createAnalyser();
@@ -83,7 +89,7 @@ export default function MindMusic() {
       
       if (realData && realData.data) {
         // USE REAL PHYSIONET DATA
-        const channelData = realData.data.map((channel: number[]) => 
+        const channelData = realData.data.map((channel) => 
           channel[frameIndex % channel.length]
         );
         
@@ -463,7 +469,7 @@ export default function MindMusic() {
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-blue-900/30 animate-pulse" />
-        {[...Array(30)].map((_, i) => (
+        {mounted && [...Array(30)].map((_, i) => (
           <div
             key={i}
             className="absolute rounded-full bg-white opacity-20"
@@ -499,13 +505,13 @@ export default function MindMusic() {
         </div>
 
         {/* Live Streaming Badge */}
-        {isStreaming && (
+        {/* {isStreaming && (
           <div className="fixed top-4 right-4 bg-red-500 px-4 py-2 rounded-full flex items-center gap-2 animate-pulse">
             <Radio size={16} />
             <span className="font-bold">LIVE</span>
             <span className="text-sm">👁 {viewers} watching</span>
           </div>
-        )}
+        )} */}
 
         {/* Main Visualization */}
         <div className="mb-12">
@@ -565,26 +571,26 @@ export default function MindMusic() {
             >
               <Activity size={20} />
               {isRecording ? 'Recording...' : 'Record'}
-            </button>
+            </button>  
 
-            <button
+            {/* <button
               onClick={shareSession}
               disabled={!isPlaying}
               className="px-6 py-4 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-full font-bold flex items-center gap-2 transition-all"
             >
               <Share2 size={20} />
               Share
-            </button>
+            </button> */}
 
-            <button
+            {/* <button
               onClick={generatePlaylist}
               className="px-6 py-4 bg-indigo-500 hover:bg-indigo-600 rounded-full font-bold flex items-center gap-2 transition-all"
             >
               <Music size={20} />
               Get Playlist
-            </button>
+            </button> */}
 
-            <button
+            {/* <button
               onClick={toggleStreaming}
               className={`px-6 py-4 rounded-full font-bold flex items-center gap-2 transition-all ${
                 isStreaming 
@@ -594,11 +600,11 @@ export default function MindMusic() {
             >
               <Radio size={20} />
               {isStreaming ? 'Stop Stream' : 'Go Live'}
-            </button>
+            </button> */}
           </div>
         </div>
 
-        {/* Recordings */}
+        {/* Recordings
         {recordings.length > 0 && (
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -627,7 +633,7 @@ export default function MindMusic() {
               ))}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Info Panel */}
         <div className="mt-8 bg-blue-500/20 border border-blue-500 rounded-lg p-6">
@@ -649,14 +655,14 @@ export default function MindMusic() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Built by Afeez Okewunmi | Session ID: {sessionId}</p>
+          <p>Built by Afeez Okewunmi{sessionId && ` | Session ID: ${sessionId}`}</p>
           <p className="mt-1">
             {realData 
               ? `Dataset: ${realData.metadata.source}` 
               : 'Ready for EMOTIV Hardware Integration'
             }
           </p>
-          {realData && (
+          {realData && realData.metadata.url && (
             <p className="text-xs text-gray-600 mt-1">
               Citation: <a 
                 href={realData.metadata.url} 
